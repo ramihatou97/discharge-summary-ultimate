@@ -43,7 +43,10 @@ An educational tool for learning neurosurgical documentation automation, with AI
 1. Fork this repository to your GitHub account
 2. Go to [vercel.com](https://vercel.com)
 3. Import your forked repository
-4. Deploy with one click
+4. **Framework Preset**: Vercel auto-detects Create React App
+5. Deploy with one click
+
+**For better performance**: See [VERCEL_DEPLOYMENT_GUIDE.md](../VERCEL_DEPLOYMENT_GUIDE.md) for framework preset recommendations (Vite vs Create React App comparison)
 
 ### Option 2: Deploy to Netlify
 1. Fork this repository
@@ -59,12 +62,14 @@ git clone https://github.com/ramihatou97/discharge-summary-generator.git
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev
+# Start development server (Create React App)
+npm start
 
 # Build for production
 npm run build
 ```
+
+**Note**: This project currently uses Create React App. For faster builds and better performance on Vercel, consider migrating to Vite. See [VERCEL_DEPLOYMENT_GUIDE.md](../VERCEL_DEPLOYMENT_GUIDE.md) for detailed instructions.
 
 ## Usage
 
