@@ -2,15 +2,17 @@
 
 ## Executive Summary
 
-This document provides **actionable recommendations** to transform the Discharge Summary Generator from a promising prototype to a production-ready, clinically deployable system. Recommendations are prioritized by impact and feasibility.
+This document provides **actionable recommendations** to transform the Discharge Summary Generator from a promising prototype to a highly accurate, effective **educational tool** for neurosurgical documentation training. Recommendations are prioritized by impact on educational value and medical accuracy.
+
+**Context**: This tool is designed for **educational use with simulated/fake patient data only**. No FDA approval or HIPAA compliance required. Focus is on maximizing accuracy and educational value for neurosurgical training.
 
 ---
 
 ## Prioritization Framework
 
 **Priority Levels**:
-- **P0 (Critical)**: Must have before any clinical use - safety/legal requirements
-- **P1 (High)**: Significantly improves utility and adoption
+- **P0 (Critical)**: Must have for educational effectiveness - accuracy/quality requirements
+- **P1 (High)**: Significantly improves learning value and accuracy
 - **P2 (Medium)**: Quality improvements, user experience enhancements
 - **P3 (Low)**: Nice-to-have features, optimizations
 
@@ -18,291 +20,342 @@ This document provides **actionable recommendations** to transform the Discharge
 - **Small**: 1-2 weeks
 - **Medium**: 1-2 months
 - **Large**: 3-6 months
-- **XLarge**: 6+ months
+
+**Note**: Removed regulatory/compliance items (FDA, HIPAA, medical device) as this is an educational tool using fake data only.
 
 ---
 
-## P0: Critical Security & Compliance (Must Do First)
+## P0: Critical for Educational Accuracy (Must Do First)
 
-### 1.1 HIPAA Compliance Package
-**Priority**: P0 | **Effort**: Large (3-6 months) | **Cost**: $50K-100K
+### 1.1 Anti-Extrapolation System
+**Priority**: P0 | **Effort**: Medium (1 month) | **Impact**: ⭐⭐⭐⭐⭐
 
-**Current State**: PHI stored unencrypted, sent to non-compliant API, no access controls
+**Current Problem**: System fills in data that isn't explicitly in notes, creating hallucinations
 
-**Recommendations**:
-1. **Remove Google Gemini API integration** until BAA in place
-   - Replace with local NLP (e.g., HuggingFace Transformers)
-   - Or use Azure Health Bot with BAA
-   - Or AWS Comprehend Medical with HIPAA compliance
-
-2. **Implement encryption at rest**
-   ```javascript
-   // Use Web Crypto API
-   const encryptData = async (data, key) => {
-     const encrypted = await crypto.subtle.encrypt(
-       { name: "AES-GCM", iv: iv },
-       key,
-       encoder.encode(JSON.stringify(data))
-     );
-     return encrypted;
-   };
-   ```
-
-3. **Add authentication/authorization**
-   - Integrate with hospital SSO (SAML/OAuth)
-   - Implement role-based access control (RBAC)
-   - Add audit logging for all PHI access
-   - Session timeout after 15 minutes
-
-4. **Security headers and CSP**
-   ```javascript
-   // In server config or meta tags
-   Content-Security-Policy: default-src 'self'
-   X-Frame-Options: DENY
-   Strict-Transport-Security: max-age=31536000
-   ```
-
-5. **Audit trail implementation**
-   ```javascript
-   const auditLog = {
-     userId: getCurrentUser(),
-     action: 'VIEW_PATIENT',
-     patientMRN: patient.mrn,
-     timestamp: new Date().toISOString(),
-     ipAddress: getClientIP()
-   };
-   await saveAuditLog(auditLog);
-   ```
-
-**Success Criteria**:
-- ✅ HIPAA compliance checklist 100% complete
-- ✅ Security audit passed
-- ✅ All PHI encrypted
-- ✅ All access logged
-
-**Business Impact**: **Mandatory** - Cannot deploy without this
-
----
-
-### 1.2 Comprehensive Testing Suite
-**Priority**: P0 | **Effort**: Medium (2-3 months) | **Cost**: $30K-50K
-
-**Current State**: Zero automated tests, no validation
+**Principle**: **"If it's not in the notes, leave it empty. Never assume, never guess."**
 
 **Recommendations**:
 
-1. **Unit Tests (Target: 80% coverage)**
+1. **Strict Extraction Validation**
    ```javascript
-   // Example: Test extraction function
-   describe('extractWithPatterns', () => {
-     it('should extract patient name from admission note', () => {
-       const note = "Patient: John Smith, Age: 58";
-       const result = extractWithPatterns(note);
-       expect(result.patientName).toBe("John Smith");
-       expect(result.age).toBe("58");
-     });
+   function validateExtraction(extractedValue, sourceText, pattern) {
+     // Check if value actually exists in source
+     const normalizedSource = sourceText.toLowerCase();
+     const normalizedValue = extractedValue.toLowerCase();
      
-     it('should handle missing data gracefully', () => {
-       const result = extractWithPatterns("");
-       expect(result.patientName).toBe("");
-       expect(() => extractWithPatterns("")).not.toThrow();
-     });
-   });
-   ```
-
-2. **Integration Tests**
-   ```javascript
-   describe('Full extraction pipeline', () => {
-     it('should extract and generate complete summary', async () => {
-       const notes = loadDemoCase('sah');
-       await handleExtractData(notes);
-       await generateSummary();
+     // Must find exact or close match in source
+     if (!normalizedSource.includes(normalizedValue)) {
+       // Check for common variations
+       const variations = getCommonVariations(normalizedValue);
+       const found = variations.some(v => normalizedSource.includes(v));
        
-       expect(generatedSummary).toContain('DISCHARGE SUMMARY');
-       expect(generatedSummary).toContain('Subarachnoid hemorrhage');
-     });
-   });
-   ```
-
-3. **Clinical Validation Tests**
-   ```javascript
-   // Test against gold standard dataset
-   describe('Clinical accuracy', () => {
-     const goldStandardCases = loadValidationDataset();
+       if (!found) {
+         console.warn(`Extracted "${extractedValue}" not found in source`);
+         return null; // Return null instead of guessed value
+       }
+     }
      
-     goldStandardCases.forEach((testCase) => {
-       it(`should match gold standard for ${testCase.id}`, () => {
-         const extracted = extractWithPatterns(testCase.input);
-         
-         expect(extracted.dischargeDiagnosis)
-           .toBe(testCase.expected.dischargeDiagnosis);
-         
-         expect(calculateAccuracy(extracted, testCase.expected))
-           .toBeGreaterThan(0.95); // 95% accuracy threshold
-       });
-     });
-   });
-   ```
-
-4. **End-to-End Tests with Playwright**
-   ```javascript
-   test('Complete user workflow', async ({ page }) => {
-     await page.goto('/');
-     await page.fill('#admission-note', demoNote);
-     await page.click('button:has-text("Extract Information")');
-     await expect(page.locator('.extracted-data')).toBeVisible();
-     await page.click('button:has-text("Generate Summary")');
-     await expect(page.locator('.discharge-summary')).toContainText('DISCHARGE SUMMARY');
-   });
-   ```
-
-5. **Regression Tests**
-   - Create test suite from real de-identified cases
-   - Run on every commit (CI/CD)
-   - Track accuracy over time
-
-**Success Criteria**:
-- ✅ 80%+ code coverage
-- ✅ All critical paths tested
-- ✅ 95%+ accuracy on validation set
-- ✅ Zero failing tests
-
-**Tools to Add**:
-- Jest for unit/integration tests
-- React Testing Library for component tests
-- Playwright for E2E tests
-- Istanbul for coverage reporting
-
----
-
-### 1.3 Medical Device Regulatory Path
-**Priority**: P0 | **Effort**: XLarge (12-18 months) | **Cost**: $200K-500K
-
-**Current State**: No regulatory strategy
-
-**Recommendations**:
-
-1. **FDA Classification (US)**
-   - **Likely Class**: II Medical Device (Software as a Medical Device - SaMD)
-   - **Pathway**: 510(k) Premarket Notification
-   - **Predicate Device**: Find similar cleared device
-   - **Estimated Time**: 6-12 months
-   - **Cost**: $100K-300K (including consultants)
-
-2. **Required Documentation**:
-   - [ ] Design History File (DHF)
-   - [ ] Risk Management File (ISO 14971)
-   - [ ] Software Validation Documentation (IEC 62304)
-   - [ ] Clinical Evaluation Report
-   - [ ] Usability Engineering File (IEC 62366)
-   - [ ] Cybersecurity Documentation (FDA Guidance)
-
-3. **Quality Management System**
-   - Implement ISO 13485 QMS
-   - Document Control System
-   - Change Control Process
-   - CAPA (Corrective and Preventive Actions)
-   - Post-market surveillance plan
-
-4. **Clinical Evidence**
-   - **Retrospective Study**: 100+ cases compared to manual summaries
-   - **Prospective Study**: Real-world usage with physician validation
-   - **Metrics**: Accuracy, time savings, error reduction, user satisfaction
-
-5. **Alternative: EU CE Marking**
-   - May be faster than FDA
-   - MDR (Medical Device Regulation) compliance
-   - Notified Body review
-   - Clinical Evaluation Report required
-
-**Recommendation**: **Hire regulatory consultant** - This is specialized expertise
-
-**Timeline**:
-- Months 1-3: Documentation and QMS setup
-- Months 4-6: Clinical validation studies
-- Months 7-12: Regulatory submission and review
-- Months 12-18: Approval and launch
-
----
-
-## P1: Core Functionality Enhancements (High Impact)
-
-### 2.1 Modern NLP Integration
-**Priority**: P1 | **Effort**: Large (3-4 months) | **Impact**: ⭐⭐⭐⭐⭐
-
-**Current State**: Basic regex patterns, no real NLP
-
-**Recommendations**:
-
-1. **Replace Pattern Matching with Clinical NLP**
-   ```javascript
-   // Use clinical BERT or BioBERT
-   import { pipeline } from '@xenova/transformers';
+     return extractedValue;
+   }
    
-   const ner = await pipeline('token-classification', 
-     'Clinical-AI-Apollo/Medical-NER');
+   // Apply to all extractions
+   const validated = {
+     patientName: validateExtraction(extracted.patientName, admissionNote, pattern) || "",
+     age: validateExtraction(extracted.age, admissionNote, pattern) || "",
+     // Leave empty if not found - DON'T GUESS
+   };
+   ```
+
+2. **Confidence Threshold Enforcement**
+   ```javascript
+   const MINIMUM_CONFIDENCE = 0.85; // High threshold
    
-   const entities = await ner(clinicalNote);
-   // Returns: [
-   //   { entity: 'MEDICATION', word: 'Levetiracetam', score: 0.99 },
-   //   { entity: 'DIAGNOSIS', word: 'subarachnoid hemorrhage', score: 0.98 }
-   // ]
-   ```
-
-2. **Implement Medical Concept Extraction**
-   ```javascript
-   // Use UMLS/SNOMED CT for concept recognition
-   import { MedicalConceptExtractor } from 'clinical-concept-extractor';
-   
-   const concepts = await extractor.extract(text);
-   // Links "SAH" → "C0038525" (SNOMED: Subarachnoid hemorrhage)
-   ```
-
-3. **Temporal Relation Extraction**
-   ```javascript
-   // Extract timeline: when did events occur?
-   const timeline = extractTemporalRelations(notes);
-   // [
-   //   { event: 'symptom onset', date: 'POD#0' },
-   //   { event: 'surgery', date: 'POD#1' },
-   //   { event: 'complication', date: 'POD#5' }
-   // ]
-   ```
-
-4. **Semantic Similarity for Entity Resolution**
-   ```javascript
-   // Recognize "Keppra" = "Levetiracetam"
-   const similarity = calculateSemanticSimilarity('Keppra', 'Levetiracetam');
-   if (similarity > 0.8) {
-     mergeDuplicateEntities();
+   function enforceConfidenceThreshold(extracted, confidenceScores) {
+     const validated = {};
+     
+     for (const [field, value] of Object.entries(extracted)) {
+       const confidence = confidenceScores[field] || 0;
+       
+       if (confidence < MINIMUM_CONFIDENCE) {
+         // Leave empty instead of returning low-confidence guess
+         validated[field] = "";
+         console.log(`${field}: Confidence ${confidence} below threshold, leaving empty`);
+       } else {
+         validated[field] = value;
+       }
+     }
+     
+     return validated;
    }
    ```
 
-5. **Context-Aware Extraction**
-   ```javascript
-   // Understand negation and uncertainty
-   "No evidence of hemorrhage" 
-   → hemorrhage: false, confidence: high
-   
-   "Possible vasospasm"
-   → vasospasm: true, confidence: medium, qualifier: possible
+3. **UI Warning for Empty Fields**
+   ```jsx
+   function EmptyFieldIndicator({ fieldName, value }) {
+     if (!value || value.trim() === "") {
+       return (
+         <div className="empty-field-notice">
+           <AlertCircle size={16} />
+           <span>{fieldName} not found in notes</span>
+           <small>Leave empty - do not guess</small>
+         </div>
+       );
+     }
+     return <span>{value}</span>;
+   }
    ```
 
-**Recommended Libraries**:
-- `@xenova/transformers` - Run transformers in browser (HIPAA-friendly)
-- `clinical-nlp` - Medical text processing
-- `medspacy` (Python) - Clinical NLP for Python backend
+4. **Disable AI Hallucination**
+   ```javascript
+   // When using AI, explicitly instruct not to extrapolate
+   const prompt = `
+   Extract ONLY information that is EXPLICITLY stated in the notes.
+   
+   CRITICAL RULES:
+   - If information is not in the notes, return empty string ""
+   - NEVER infer, assume, or extrapolate
+   - NEVER use common defaults or typical values
+   - If unsure, leave empty
+   - Only extract what you can directly quote from the notes
+   
+   Return fields as empty string if not found.
+   `;
+   ```
 
-**Benefits**:
-- 95%+ accuracy (up from 70-87%)
-- Handles variations in documentation
-- Understands medical context
-- Reduces false positives
+**Success Criteria**:
+- ✅ Zero extrapolated values
+- ✅ All extracted data traceable to source text
+- ✅ Clear UI indication of missing data
+- ✅ No "typical" or "common" value substitutions
+
+**Business Impact**: **Critical** - Prevents teaching incorrect habits to medical students
 
 ---
 
-### 2.2 EHR Integration
-**Priority**: P1 | **Effort**: Large (4-6 months) | **Impact**: ⭐⭐⭐⭐⭐
+### 1.2 Comprehensive Testing Suite for Medical Accuracy
+**Priority**: P0 | **Effort**: Medium (2-3 months) | **Impact**: ⭐⭐⭐⭐⭐
+
+**Current State**: Zero automated tests, unknown accuracy on neurosurgical cases
+
+**Recommendations**:
+
+1. **Neurosurgical Test Case Library**
+   ```javascript
+   // Create comprehensive test cases for neurosurgical scenarios
+   const neurosurgicalTestCases = [
+     {
+       id: 'SAH_001',
+       category: 'Vascular',
+       admissionNote: `58 yo M with worst HA of life. CT shows SAH Hunt-Hess 2.`,
+       expectedExtraction: {
+         age: '58',
+         sex: 'Male',
+         chiefComplaint: 'worst headache of life',
+         diagnosis: 'subarachnoid hemorrhage',
+         huntHessGrade: '2',
+         // Fields not in note should be empty
+         medications: [],
+         surgicalHistory: []
+       }
+     },
+     {
+       id: 'SPINE_001',
+       category: 'Spine',
+       admissionNote: `45 yo F with L4-L5 HNP, failed PT x 6 weeks`,
+       expectedExtraction: {
+         age: '45',
+         sex: 'Female',
+         spinalLevel: 'L4-L5',
+         diagnosis: 'herniated nucleus pulposus',
+         // Should be empty - not mentioned
+         huntHessGrade: '',
+         traumaMechanism: ''
+       }
+     }
+     // Add 50+ test cases covering all neurosurgical scenarios
+   ];
+   ```
+
+2. **Accuracy Validation Tests**
+   ```javascript
+   describe('Medical Extraction Accuracy', () => {
+     neurosurgicalTestCases.forEach((testCase) => {
+       it(`should accurately extract ${testCase.id}`, () => {
+         const extracted = extractWithPatterns(testCase.admissionNote);
+         
+         // Check each expected field
+         Object.entries(testCase.expectedExtraction).forEach(([field, expected]) => {
+           expect(extracted[field]).toBe(expected);
+         });
+         
+         // Verify no extrapolation - empty fields should stay empty
+         const emptyFields = Object.entries(testCase.expectedExtraction)
+           .filter(([_, value]) => value === '' || value?.length === 0)
+           .map(([field]) => field);
+         
+         emptyFields.forEach(field => {
+           expect(extracted[field]).toBe('');
+         });
+       });
+     });
+     
+     it('should achieve >95% accuracy on neurosurgical cases', () => {
+       const results = neurosurgicalTestCases.map(testCase => {
+         const extracted = extractWithPatterns(testCase.admissionNote);
+         return calculateAccuracy(extracted, testCase.expectedExtraction);
+       });
+       
+       const avgAccuracy = results.reduce((a, b) => a + b) / results.length;
+       expect(avgAccuracy).toBeGreaterThan(0.95);
+     });
+   });
+   ```
+
+3. **No-Extrapolation Tests**
+   ```javascript
+   describe('Anti-Extrapolation', () => {
+     it('should leave fields empty when data not in notes', () => {
+       const minimalNote = "58 yo M with headache";
+       const extracted = extractWithPatterns(minimalNote);
+       
+       // Should extract what's there
+       expect(extracted.age).toBe('58');
+       expect(extracted.sex).toBe('Male');
+       
+       // Should NOT extrapolate/guess these
+       expect(extracted.medications).toEqual([]);
+       expect(extracted.procedures).toEqual([]);
+       expect(extracted.huntHessGrade).toBe('');
+       expect(extracted.icpValue).toBe('');
+     });
+     
+     it('should not use typical values as defaults', () => {
+       const noteWithoutVitals = "Patient stable";
+       const extracted = extractWithPatterns(noteWithoutVitals);
+       
+       // Should be empty, not "98.6F" or "120/80"
+       expect(extracted.temperature).toBe('');
+       expect(extracted.bloodPressure).toBe('');
+     });
+   });
+   ```
+
+**Success Criteria**:
+- ✅ 95%+ accuracy on neurosurgical test cases
+- ✅ Zero extrapolation errors
+- ✅ 100+ neurosurgical scenarios tested
+- ✅ All tests passing before deployment
+
+---
+
+### 1.3 Enhanced Neurosurgical Context Understanding
+**Priority**: P0 | **Effort**: Large (3-4 months) | **Impact**: ⭐⭐⭐⭐⭐
+
+**Current State**: Basic regex patterns, no true understanding of neurosurgical context
+
+**Goal**: Deep understanding of neurosurgical procedures, conditions, patient progression, and temporal evolution
+
+**Recommendations**:
+
+1. **Neurosurgical Ontology**
+   ```javascript
+   const NEUROSURGICAL_ONTOLOGY = {
+     procedures: {
+       'craniotomy': {
+         variations: ['crani', 'cranial opening', 'bone flap'],
+         postOpConcerns: ['ICP monitoring', 'CSF leak', 'seizure risk'],
+         typicalCourse: ['POD#0: ICU', 'POD#1-2: Step-down', 'POD#3-5: Floor'],
+         complications: ['hemorrhage', 'edema', 'infection', 'CSF leak'],
+         followUp: ['Wound check 2 weeks', 'CT scan 6 weeks']
+       },
+       'EVD placement': {
+         variations: ['external ventricular drain', 'ventriculostomy'],
+         monitoring: ['ICP values', 'CSF output', 'CSF character'],
+         weaning: ['Clamp trial', 'Raise to 20cm', 'Remove if tolerating'],
+         complications: ['infection', 'hemorrhage', 'malposition']
+       },
+       // Comprehensive neurosurgical procedures
+     },
+     
+     conditions: {
+       'SAH': {
+         fullName: 'subarachnoid hemorrhage',
+         grading: ['Hunt-Hess', 'Fisher', 'WFNS'],
+         complications: ['vasospasm', 'hydrocephalus', 'rebleeding'],
+         timeline: {
+           'days 0-3': 'Early period - rebleeding risk',
+           'days 4-14': 'Vasospasm window',
+           'days 14+': 'Late hydrocephalus risk'
+         },
+         monitoring: ['TCDs daily', 'Neuro checks q1h', 'BP control']
+       }
+     },
+     
+     temporalMarkers: {
+       'POD#': 'post-operative day',
+       'HD#': 'hospital day',
+       'ICU day': 'intensive care unit day'
+     }
+   };
+   ```
+
+2. **Temporal Evolution Tracking**
+   ```javascript
+   function extractTemporalProgression(notes) {
+     const timeline = [];
+     
+     // Extract events with timestamps
+     const events = extractEventsWithDates(notes);
+     
+     // Build progression
+     events.forEach(event => {
+       timeline.push({
+         day: event.day,
+         type: event.type, // 'procedure', 'complication', 'improvement'
+         description: event.description,
+         significance: assessSignificance(event)
+       });
+     });
+     
+     // Understand patient trajectory
+     const trajectory = {
+       improving: timeline.filter(e => e.type === 'improvement').length > 0,
+       complications: timeline.filter(e => e.type === 'complication'),
+       overallTrend: calculateTrend(timeline)
+     };
+     
+     return { timeline, trajectory };
+   }
+   ```
+
+3. **Context-Aware Extraction**
+   ```javascript
+   function extractWithNeurosurgicalContext(note, noteType) {
+     // Understand what to expect based on note type
+     const expectedFields = {
+       'admission': ['diagnosis', 'neuro exam', 'imaging findings'],
+       'operative': ['procedure', 'EBL', 'complications', 'hardware'],
+       'progress': ['neuro exam changes', 'ICP values', 'medications adjusted']
+     };
+     
+     // Extract with context
+     const extracted = {};
+     expectedFields[noteType].forEach(field => {
+       // Use context-specific patterns
+       extracted[field] = extractFieldWithContext(note, field, noteType);
+     });
+     
+     return extracted;
+   }
+   ```
+
+**Success Criteria**:
+- ✅ Understands all major neurosurgical procedures
+- ✅ Tracks patient progression over time
+- ✅ Recognizes complications in context
+- ✅ 95%+ accuracy on neurosurgical scenarios
+
+---
 
 **Current State**: Standalone app, manual copy-paste
 

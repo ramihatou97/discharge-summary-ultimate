@@ -1,10 +1,10 @@
 # Discharge Summary Generator Ultimate
 
-A professional medical documentation tool for generating discharge summaries from clinical notes, with AI-powered extraction and evidence-based clinical decision support.
+An educational tool for learning neurosurgical documentation automation, with AI-powered extraction and evidence-based clinical decision support. **Uses simulated/fake data only for educational purposes.**
 
 ## 📚 Documentation
 
-**New comprehensive documentation available!**
+**Comprehensive documentation available!**
 
 - 📖 **[Quick Reference Guide](../QUICK_REFERENCE.md)** - Start here! Simple explanation of how everything works
 - 🔧 **[Technical Documentation](../TECHNICAL_DOCUMENTATION.md)** - Deep dive into algorithms, architecture, and implementation
@@ -13,26 +13,29 @@ A professional medical documentation tool for generating discharge summaries fro
 
 ## ⚠️ Important Notice
 
-**This application is a prototype and NOT approved for clinical use.** Key limitations:
-- Not FDA-approved or CE-marked
-- No HIPAA compliance verification
-- No clinical validation studies
-- Requires physician review of all outputs
-- 70-90% accuracy (13-30% error rate)
+**This application is an EDUCATIONAL TOOL using simulated data only.** 
 
-**Use for educational and demonstration purposes only.**
+**Key Clarifications**:
+- ✅ **Educational use**: Learning tool for medical students and residents
+- ✅ **Simulated data**: All patient data is fake/simulated scenarios
+- ✅ **No FDA/HIPAA requirements**: Not for real clinical use
+- ⚠️ **Neurosurgery focus**: Specialized for neurosurgical documentation
+- ⚠️ **No extrapolation**: Only extracts what's explicitly in notes
+- ⚠️ **Accuracy goal**: Currently 70-87%, target 95%+ for educational effectiveness
+
+**Design Principle**: If information is not explicitly in the notes, the field remains empty. No guessing, no assumptions, no extrapolation.
 
 ## Features
 
-- **Multi-modal extraction**: Pattern-based (regex) + optional AI enhancement
+- **Dual extraction modes**: Pattern-based (regex) + optional AI enhancement
 - **Neurosurgery specialization**: 500+ medical abbreviations, specialty templates
 - **Risk assessments**: Seizure, VTE, and readmission risk calculators
 - **Evidence-based recommendations**: Clinical guidelines integrated
+- **Anti-extrapolation**: Leaves fields empty when data not in notes (by design)
 - **Self-learning system**: Improves from user corrections
 - **Auto-save**: Never lose your work
 - **Multiple templates**: Neurosurgery, standard, and brief formats
 - **Dark mode support**: Reduce eye strain
-- **Print-ready**: Professional formatting for medical records
 
 ## Quick Start
 
@@ -96,6 +99,8 @@ The app uses two extraction methods:
 - **Pattern Matching** (always active): Fast, offline, ~70-80% accurate
 - **AI Enhancement** (optional): Slower, requires API key, ~85-90% accurate
 
+**Critical Design Principle**: The system **ONLY extracts information explicitly stated in notes**. If data is not present, fields remain empty. No extrapolation, no guessing, no assumptions.
+
 For detailed explanation of all algorithms and functions, see [Technical Documentation](../TECHNICAL_DOCUMENTATION.md).
 
 ## AI Integration (Optional)
@@ -105,65 +110,28 @@ To enable AI-powered extraction:
 2. Enable "Use AI Extraction" in settings
 3. Enter your API key
 
-**Privacy Note**: When AI extraction is enabled, clinical notes are sent to Google's servers. This may not be HIPAA-compliant without a Business Associate Agreement (BAA). Use pattern-only extraction for sensitive data.
+**Note for Educational Use**: The AI is instructed to only extract information explicitly in the notes. It will not infer, assume, or extrapolate missing data. Empty fields remain empty by design.
 
-## Technical Stack
-
-- **Frontend**: React 18.2.0
-- **UI Components**: Lucide-react icons
-- **Styling**: Tailwind CSS 3.3.0
-- **AI (optional)**: Google Gemini API
-- **Data Processing**: Client-side (browser-based)
-- **Storage**: localStorage (auto-save)
-
-## Architecture Overview
-
-```
-Input (8 note types) 
-  → Preprocessing (abbreviation expansion)
-  → Extraction (pattern matching + optional AI)
-  → Validation (completeness checking)
-  → Risk Assessment (3 calculators)
-  → Recommendations (evidence-based)
-  → Output (formatted summary)
-```
-
-For complete architecture details, see [Technical Documentation](../TECHNICAL_DOCUMENTATION.md).
-
-## Accuracy & Limitations
+## Accuracy & Educational Focus
 
 ### Extraction Accuracy
 - **Pattern matching**: 70-80% baseline accuracy
-- **AI enhancement**: 85-90% accuracy
-- **With training**: Improves to 87%+ over time
+- **AI enhancement**: 85-90% accuracy  
+- **Target goal**: 95%+ for educational effectiveness
 
-### Known Limitations
-- ❌ Not FDA-approved medical device
-- ❌ No HIPAA compliance verification
-- ❌ No clinical validation studies
-- ❌ No drug interaction checking
-- ❌ No EHR integration
-- ❌ Requires manual review of all outputs
-- ❌ Single-user machine learning (no collaborative learning)
+### Core Design Principles
+1. **No Extrapolation**: If not in notes, leave empty
+2. **Explicit Only**: Extract what's written, not what's implied
+3. **Neurosurgery Focus**: Deep expertise in one specialty
+4. **Educational Value**: Teaches proper documentation habits
+
+### Known Areas for Improvement
+- Temporal understanding (patient progression over time)
+- Neurosurgical context awareness
+- Complex procedure relationships
+- Complication timeline tracking
 
 **See [Critical Appraisal](../CRITICAL_APPRAISAL.md) for detailed analysis.**
-
-## Roadmap & Enhancements
-
-Interested in improving this tool? See our comprehensive [Enhancement Recommendations](../ENHANCEMENT_RECOMMENDATIONS.md) including:
-
-**Priority 0 (Critical)**:
-- HIPAA compliance package
-- Comprehensive testing suite
-- FDA regulatory pathway
-
-**Priority 1 (High Impact)**:
-- Modern NLP integration (Clinical BERT)
-- EHR integration (FHIR)
-- TypeScript migration
-- Drug interaction checking
-
-**See full roadmap with cost estimates and timelines in [Enhancement Recommendations](../ENHANCEMENT_RECOMMENDATIONS.md).**
 
 ## Contributing
 
@@ -180,14 +148,14 @@ This project is for educational and research purposes. Not licensed for clinical
 
 ## Disclaimer
 
-**IMPORTANT**: This software is provided for educational and research purposes only. It is NOT:
+**IMPORTANT**: This software is an **educational tool for learning purposes only** using **simulated patient data**. It is NOT:
 - A substitute for professional medical judgment
 - FDA-approved or CE-marked
-- Validated for clinical accuracy
-- HIPAA-compliant by default
+- Intended for real clinical use
 - A replacement for proper medical documentation
+- HIPAA-compliant (not needed - educational use only)
 
-Always verify all extracted data and generated summaries. The authors assume no liability for medical errors, data breaches, or regulatory violations resulting from use of this software.
+All data used should be fake/simulated scenarios for training purposes. The authors assume no liability for any misuse of this educational software.
 
 ## Support & Contact
 
@@ -197,7 +165,7 @@ Always verify all extracted data and generated summaries. The authors assume no 
 
 ## Acknowledgments
 
-Built with modern web technologies and informed by clinical best practices. Special thanks to the neurosurgery community for clinical guidance and feedback.
+Built as an educational tool for learning neurosurgical documentation automation. Informed by clinical best practices and designed to teach proper extraction without extrapolation.
 
 ---
 

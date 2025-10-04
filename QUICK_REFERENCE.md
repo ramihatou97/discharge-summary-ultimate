@@ -2,13 +2,15 @@
 
 ## 📋 What Does This App Do?
 
-The **Discharge Summary Generator Ultimate** is a medical documentation tool that:
-1. Takes clinical notes (admission, progress, discharge notes)
+The **Discharge Summary Generator Ultimate** is an **educational tool** for learning neurosurgical documentation that:
+1. Takes simulated clinical notes (admission, progress, discharge notes)
 2. Extracts structured patient data automatically
 3. Generates a formatted discharge summary
 4. Provides risk assessments and evidence-based recommendations
 
-**Target Users**: Physicians, residents, hospital staff (neurosurgery focus)
+**Target Users**: Medical students, residents, educators learning neurosurgical documentation
+
+**Important**: This tool uses **fake/simulated data only** for educational purposes. Not for real clinical use.
 
 ---
 
@@ -243,23 +245,23 @@ Discharge: Home with PT, no lifting >10 lbs x 6 weeks
 ## ⚠️ Important Limitations
 
 ### ❌ What This App CANNOT Do
-1. **Replace physician judgment** - Always review outputs
-2. **Guarantee 100% accuracy** - 13-30% error rate reported
-3. **Check drug interactions** - No medication safety checking
-4. **Integrate with EHR** - Manual copy-paste required
-5. **Be used for legal documentation** - Not FDA-approved
+1. **Process real patient data** - Educational use with simulated data only
+2. **Guarantee 100% accuracy** - Currently 70-87% accuracy, goal is 95%+
+3. **Extrapolate missing data** - If not in notes, field stays empty (by design)
+4. **Replace medical judgment** - Learning tool, not clinical decision support
+5. **Support other specialties** - Neurosurgery focus only
 
-### 🔒 Privacy & Security Concerns
-1. **localStorage**: Data stored unencrypted in browser
-2. **Google API**: PHI sent to third party (not HIPAA-compliant by default)
-3. **No authentication**: Anyone with browser access can view data
-4. **No audit trail**: Can't track who accessed what
+### 🎓 Educational Context
+1. **No HIPAA/FDA requirements** - Uses fake data only
+2. **Learning tool** - For understanding neurosurgical documentation
+3. **Training scenarios** - All cases are simulated
+4. **Accuracy focus** - Goal is to teach precise extraction, no guessing
 
-### 🚨 Critical Gaps
-1. **No automated testing** - Correctness not verified
-2. **No medical device approval** - Not FDA-cleared
-3. **No clinical validation** - Real-world accuracy unknown
-4. **Hardcoded guidelines** - Can't update evidence base
+### 🔒 Key Design Principles
+1. **No extrapolation** - If data not in notes, leave empty. Never assume.
+2. **Neurosurgery only** - Deep focus on one specialty
+3. **Explicit only** - Extract what's written, not what's implied
+4. **High accuracy** - Target 95%+ for educational effectiveness
 
 ---
 
@@ -376,51 +378,49 @@ For more detailed information, see:
 ## ❓ FAQ
 
 **Q: Is this safe to use for real patients?**
-A: No - not FDA-approved, no clinical validation, HIPAA concerns. Use for educational purposes only.
+A: No - this is an educational tool for learning with fake/simulated data only. Not for clinical use.
 
 **Q: How accurate is the extraction?**
-A: 70-90% depending on method. Always requires physician review.
+A: Currently 70-87%, goal is 95%+. See TECHNICAL_DOCUMENTATION.md section 5.2 for details.
 
-**Q: Does it replace my EHR?**
-A: No - it's a documentation aid. You still need to enter data into your EHR.
+**Q: Why doesn't it fill in missing information?**
+A: By design - the tool only extracts what's explicitly in the notes. This teaches proper documentation habits.
+
+**Q: Does it need HIPAA compliance?**
+A: No - it's designed for educational use with simulated data only, no real PHI.
 
 **Q: Can I use this at my hospital?**
-A: Not recommended without IT security review, HIPAA compliance check, and legal approval.
+A: No - this is a learning tool for students/residents, not for real clinical documentation.
 
-**Q: Is my patient data safe?**
-A: Concerns exist - data stored unencrypted, optional API sends to Google. Not HIPAA-compliant by default.
+**Q: Why only neurosurgery?**
+A: Focused depth rather than broad coverage. Deep neurosurgical understanding is better for education.
 
-**Q: Can it work offline?**
-A: Yes - pattern matching works offline. AI enhancement requires internet.
-
-**Q: Does it learn from multiple users?**
-A: No - each user's training data is isolated in their browser.
-
-**Q: Can I customize the templates?**
-A: Not through UI - requires code changes.
+**Q: Will it guess missing values?**
+A: No - if data isn't in the notes, fields stay empty. Never extrapolates or assumes.
 
 ---
 
 ## 🎯 Bottom Line
 
 **What it does well**:
-- Saves time on data entry
-- Creates formatted discharge summaries
-- Provides evidence-based recommendations
-- User-friendly interface
+- Educational tool for learning neurosurgical documentation
+- Demonstrates automated data extraction
+- Provides evidence-based neurosurgical recommendations
+- User-friendly interface for learning
 
 **What needs work**:
-- Not ready for clinical deployment
-- Security and privacy gaps
-- Accuracy needs improvement
-- No regulatory approval
+- Accuracy needs improvement (70-87% → 95%+ goal)
+- Must eliminate extrapolation completely
+- Need comprehensive testing against neurosurgical scenarios
+- Better understanding of temporal patient progression
 
-**Best use case**: Educational tool, prototype demonstration, research project
+**Best use case**: Educational tool for medical students and residents learning neurosurgical documentation with simulated cases
 
-**Not suitable for**: Production clinical use without significant enhancements
+**Not suitable for**: Real clinical use, real patient data, other medical specialties
 
 ---
 
 **Version**: 3.0.0
 **Last Updated**: 2024
 **Maintained by**: ramihatou97
+**Purpose**: Educational tool for neurosurgical documentation training
