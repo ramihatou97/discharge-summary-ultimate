@@ -196,6 +196,47 @@ This repository now contains comprehensive documentation explaining every aspect
 
 ---
 
+### 7. [VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md) (NEW)
+**Purpose**: Complete guide to Vercel deployment with framework preset recommendations
+
+**Contents**:
+- ✅ Framework preset options (Create React App vs Vite vs Next.js)
+- ✅ Detailed comparison table
+- ✅ Performance analysis
+- ✅ Clear recommendation: **Vite for optimal performance**
+- ✅ Step-by-step migration guide from CRA to Vite
+- ✅ Vercel configuration (`vercel.json`)
+- ✅ Environment variables setup
+- ✅ Cost analysis (all free)
+- ✅ Troubleshooting guide
+- ✅ Build optimization tips
+
+**Best For**: Anyone deploying to Vercel, developers wanting faster builds
+
+**Reading Time**: 20-30 minutes
+
+**Key Insight**: Migrating from Create React App to Vite gives 6x faster builds (30s vs 3min) and 40% smaller bundles with only 10 minutes of migration effort.
+
+---
+
+### 8. [SINGLE_USER_DEPLOYMENT.md](SINGLE_USER_DEPLOYMENT.md)
+**Purpose**: Deployment options for single-user scenarios
+
+**Contents**:
+- ✅ Why no backend is needed for single user
+- ✅ GitHub Pages deployment (recommended)
+- ✅ Vercel alternative
+- ✅ Netlify alternative
+- ✅ Cost comparison (all $0/month)
+- ✅ localStorage strategy
+- ✅ Backup recommendations
+
+**Best For**: Solo users, educational deployment
+
+**Reading Time**: 15-20 minutes
+
+---
+
 ## 🔑 Key Insights from Documentation
 
 ### What This App Does Well
@@ -242,7 +283,8 @@ This repository now contains comprehensive documentation explaining every aspect
 | Critical Appraisal | 20KB | 12 | Expert |
 | Enhancements | 36KB | 25+ | Expert |
 | Architecture | 28KB | 10 | Advanced |
-| **Total** | **116KB** | **65+** | **All Levels** |
+| Vercel Guide | 13KB | 8 | Intermediate |
+| **Total** | **129KB** | **73+** | **All Levels** |
 
 ---
 
@@ -253,20 +295,25 @@ This repository now contains comprehensive documentation explaining every aspect
 2. README.md (10 min)
 3. ARCHITECTURE.md - System Overview (15 min)
 
-### Path 2: "I'm evaluating for clinical deployment" (2 hours)
+### Path 2: "I want to deploy to Vercel" (45 min)
+1. README.md (10 min)
+2. VERCEL_DEPLOYMENT_GUIDE.md (30 min)
+3. Deploy and test (5 min)
+
+### Path 3: "I'm evaluating for clinical deployment" (2 hours)
 1. QUICK_REFERENCE.md (20 min)
 2. CRITICAL_APPRAISAL.md (50 min)
 3. ENHANCEMENT_RECOMMENDATIONS.md - P0 section (30 min)
 4. Security and compliance sections (20 min)
 
-### Path 3: "I'm a developer joining the project" (3 hours)
+### Path 4: "I'm a developer joining the project" (3 hours)
 1. README.md (15 min)
 2. QUICK_REFERENCE.md (20 min)
 3. TECHNICAL_DOCUMENTATION.md (60 min)
 4. ARCHITECTURE.md (40 min)
 5. ENHANCEMENT_RECOMMENDATIONS.md - Technical sections (45 min)
 
-### Path 4: "I'm considering investment/partnership" (2.5 hours)
+### Path 5: "I'm considering investment/partnership" (2.5 hours)
 1. QUICK_REFERENCE.md (20 min)
 2. CRITICAL_APPRAISAL.md (50 min)
 3. ENHANCEMENT_RECOMMENDATIONS.md (90 min)
@@ -287,6 +334,9 @@ This repository now contains comprehensive documentation explaining every aspect
 
 ### Q: What would it cost to make production-ready?
 **A**: $1.25M-2.5M. See ENHANCEMENT_RECOMMENDATIONS.md section "Cost Estimate".
+
+### Q: Which framework preset should I use on Vercel?
+**A**: Vite (recommended). See VERCEL_DEPLOYMENT_GUIDE.md for detailed comparison. Vite gives 6x faster builds and 40% smaller bundles vs Create React App.
 
 ### Q: How does the extraction work?
 **A**: Pattern matching (regex) + optional AI (Google Gemini). See TECHNICAL_DOCUMENTATION.md section 3.
@@ -348,10 +398,12 @@ This repository now contains comprehensive documentation explaining every aspect
 - [x] Honest critical assessment (CRITICAL_APPRAISAL.md)
 - [x] Detailed improvement roadmap (ENHANCEMENT_RECOMMENDATIONS.md)
 - [x] Visual architecture diagrams (ARCHITECTURE.md)
+- [x] Vercel deployment guide with framework recommendations (VERCEL_DEPLOYMENT_GUIDE.md)
+- [x] Single-user deployment options (SINGLE_USER_DEPLOYMENT.md)
 - [x] Updated README with links
 - [x] This summary document
 
-**Total Documentation**: 116KB across 6 files covering 65+ topics
+**Total Documentation**: 129KB across 8 files covering 73+ topics
 
 ---
 

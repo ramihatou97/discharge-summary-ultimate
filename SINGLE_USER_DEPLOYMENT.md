@@ -80,6 +80,8 @@ npm run deploy
 - Better analytics dashboard
 - Easier to manage
 
+**For optimal performance**: See [VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md) for framework preset recommendations (Vite vs Create React App comparison and migration guide).
+
 ---
 
 ### Option 3: Netlify - **$0/month**
