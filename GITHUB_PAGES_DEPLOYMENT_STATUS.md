@@ -1,7 +1,8 @@
 # GitHub Pages Deployment Status Report
 
-## 📊 Current Situation (as of October 6, 2025)
+## 📊 Situation as of October 6, 2025
 
+_Note: This report reflects the situation at the time of writing (October 6, 2025)._
 ### ✅ What's Working
 - GitHub Actions "Deploy to GitHub Pages" workflow is configured correctly
 - The workflow runs successfully on every push to `main` branch
