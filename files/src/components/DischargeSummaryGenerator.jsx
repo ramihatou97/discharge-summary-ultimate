@@ -1180,8 +1180,7 @@ Patient doing well...
 ===================================
 DISCHARGE NOTE
 Patient ready for discharge...`}
-                className="input-field font-mono text-sm resize-y min-h-[320px] leading-relaxed"
-                style={{ height: '420px' }}
+                className="input-field font-mono text-sm resize-y min-h-[320px] h-[420px] leading-relaxed"
               />
               
               <label className="absolute top-4 right-4 cursor-pointer z-10">
