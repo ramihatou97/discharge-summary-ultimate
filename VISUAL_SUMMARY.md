@@ -91,7 +91,7 @@ YOU                    GITHUB ACTIONS            GITHUB PAGES
 
 | Aspect | Before (Now) | After (Merge) |
 |--------|-------------|---------------|
-| **Deployed Commit** | c44e855 (PR #4) | 23bd7d5+ (PR #5 + this) |
+| **Deployed Commit** | c44e85506d9ee150a91270c46211d0206bf0a7c8 (PR #4) | 23bd7d5+ (PR #5 + this) |
 | **Deployment Date** | Oct 6, 16:43 | Oct 6, [now] + 3 min |
 | **Age** | ~1.5 hours old | Current |
 | **Missing Changes** | PR #5 UI/UX improvements | ✅ All included |
