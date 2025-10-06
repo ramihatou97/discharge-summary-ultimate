@@ -181,4 +181,4 @@ If you're still unsure:
 **Expected outcome**: All latest changes on GitHub Pages
 **Time required**: 5 minutes
 
-*Last updated: October 6, 2025*
+*Last updated: [DATE]*
