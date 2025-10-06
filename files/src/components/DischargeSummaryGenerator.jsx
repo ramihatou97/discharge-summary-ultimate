@@ -4,7 +4,7 @@ import {
   Upload, Trash2, Wand2, RefreshCw, Edit, Settings,
   Save, Eye, EyeOff, Printer, Shield, Database,
   Activity, Clock, ClipboardList, ChevronDown, ChevronRight,
-  Heart, Brain, Zap, FileX, Loader2, Info
+  Heart, Brain, Zap, Loader2, Info
 } from 'lucide-react';
 
 const DischargeSummaryGenerator = () => {
@@ -878,6 +878,7 @@ Disposition: ${extractedData.disposition}`
 
   // Clear all
   const clearAll = () => {
+    // eslint-disable-next-line no-restricted-globals
     if (!confirm('Clear all data? This cannot be undone.')) return;
     
     setUnifiedNotes('');
