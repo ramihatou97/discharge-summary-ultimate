@@ -4,13 +4,40 @@
 The app has been successfully built and is ready for deployment!
 
 **Build Output:**
-- Size: 55.69 kB gzipped (optimized)
+- Size: 56.41 kB gzipped (optimized)
 - Location: `/files/build/`
 - Ready for: GitHub Pages deployment
 
 ## 🚀 How to Deploy
 
-### Option 1: Deploy from Your Local Machine (Recommended)
+### Option 1: Automated Deployment via GitHub Actions (RECOMMENDED) ⭐
+
+The repository now includes a GitHub Actions workflow that automatically builds and deploys the app to GitHub Pages!
+
+#### One-Time Setup:
+
+1. **Enable GitHub Pages**:
+   - Go to https://github.com/ramihatou97/discharge-summary-ultimate/settings/pages
+   - Under "Source", select: **GitHub Actions**
+   - Click "Save"
+
+2. **Merge this PR to main branch**:
+   - Once merged, the workflow will automatically trigger
+   - The app will be deployed to: https://ramihatou97.github.io/discharge-summary-ultimate/
+
+#### How It Works:
+- ✅ Automatically deploys on every push to `main` branch
+- ✅ Can be triggered manually from the Actions tab
+- ✅ Uses official GitHub Pages deployment action (most reliable)
+- ✅ No authentication issues or manual token management
+- ✅ Build logs available in the Actions tab
+
+#### Manual Trigger:
+1. Go to: https://github.com/ramihatou97/discharge-summary-ultimate/actions/workflows/deploy.yml
+2. Click "Run workflow"
+3. Select branch and click "Run workflow"
+
+### Option 2: Deploy from Your Local Machine
 
 1. **Clone or pull this repository**:
    ```bash
@@ -37,9 +64,9 @@ The app has been successfully built and is ready for deployment!
    - URL: https://ramihatou97.github.io/discharge-summary-ultimate/
    - Takes 1-2 minutes for first deploy
 
-### Option 2: Manual Deployment
+### Option 3: Manual Deployment
 
-If `npm run deploy` doesn't work, you can deploy manually:
+If other options don't work, you can deploy manually:
 
 1. **Build the app**:
    ```bash
