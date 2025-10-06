@@ -1386,8 +1386,8 @@ Patient ready for discharge...`}
                 ) : (
                   <div 
                     ref={summaryRef}
-                    className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 shadow-inner border border-gray-200"
-                    style={{ maxHeight: '600px', minHeight: '400px', overflowY: 'auto' }}
+                    className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 shadow-inner border border-gray-200 max-h-[600px] min-h-[400px] overflow-y-auto"
+                  
                   >
                     <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 leading-relaxed">
                       {generatedSummary}
