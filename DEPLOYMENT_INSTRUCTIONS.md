@@ -147,6 +147,13 @@ Updates go live in ~30 seconds!
 2. Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
 3. Check GitHub Pages settings are correct
 
+### If latest changes aren't reflected:
+1. Go to: https://github.com/ramihatou97/discharge-summary-ultimate/actions/workflows/deploy.yml
+2. Click "Run workflow" button
+3. Select branch: `main`
+4. Click "Run workflow" to manually trigger deployment
+5. Wait 2-3 minutes and refresh with cache cleared
+
 ## 📊 Cost
 
 **Total: $0/month** 

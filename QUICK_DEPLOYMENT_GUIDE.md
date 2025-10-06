@@ -124,6 +124,17 @@ To deploy future updates:
 3. Check the URL is exactly: https://ramihatou97.github.io/discharge-summary-ultimate/
 4. Check browser console for any errors (F12)
 
+### Manual Redeployment:
+
+If the latest changes aren't reflected on GitHub Pages:
+
+1. Go to: https://github.com/ramihatou97/discharge-summary-ultimate/actions/workflows/deploy.yml
+2. Click "Run workflow" button (top right)
+3. Select branch: `main`
+4. Click "Run workflow" to trigger a manual deployment
+5. Wait 2-3 minutes for the workflow to complete
+6. Refresh the GitHub Pages URL with cache cleared
+
 ## Cost
 
 **Total: $0/month**
