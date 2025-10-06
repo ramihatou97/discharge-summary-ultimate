@@ -926,28 +926,28 @@ Disposition: ${extractedData.disposition}`
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="max-w-7xl mx-auto p-6 sm:p-8 lg:p-10">
       {/* Header */}
-      <header className="card mb-6 no-print">
+      <header className="card mb-8 no-print border-2 border-gray-200 hover:border-blue-300 transition-all duration-300">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <FileText className="h-8 w-8 text-blue-600" />
+          <div className="flex items-center space-x-4">
+            <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <FileText className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Discharge Summary Generator
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Extract and generate medical discharge summaries
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Extract and generate medical discharge summaries with AI assistance
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {autoSave && (
-              <span className="text-xs text-green-600 flex items-center">
-                <Save className="h-3 w-3 mr-1" />
+              <span className="text-sm text-green-600 flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
+                <Save className="h-4 w-4" />
                 Auto-save on
               </span>
             )}
@@ -956,14 +956,14 @@ Disposition: ${extractedData.disposition}`
               className="btn-secondary text-sm"
               title="Toggle auto-save"
             >
-              <Database className="h-4 w-4" />
+              <Database className="h-5 w-5" />
             </button>
             <button
               onClick={clearAll}
-              className="btn-secondary text-sm text-red-600"
+              className="btn-secondary text-sm text-red-600 hover:bg-red-50 hover:border-red-300"
               title="Clear all data"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -971,19 +971,22 @@ Disposition: ${extractedData.disposition}`
 
       {/* Notifications */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 no-print">
-          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mb-6 p-4 bg-red-50 border-2 border-red-300 rounded-xl flex items-start gap-3 no-print shadow-sm animate-fade-in">
+          <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-900 mb-1">Error</p>
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
         </div>
       )}
       
       {warnings.length > 0 && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg no-print">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-yellow-800">
-              <p className="font-medium mb-1">Warnings:</p>
-              <ul className="list-disc list-inside space-y-1">
+        <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-xl no-print shadow-sm animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-800 flex-1">
+              <p className="font-semibold mb-2">Warnings:</p>
+              <ul className="list-disc list-inside space-y-1.5">
                 {warnings.map((warning, i) => (
                   <li key={i}>{warning}</li>
                 ))}
@@ -994,9 +997,12 @@ Disposition: ${extractedData.disposition}`
       )}
       
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2 no-print animate-fade-in">
-          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-green-800">{success}</p>
+        <div className="mb-6 p-4 bg-green-50 border-2 border-green-300 rounded-xl flex items-start gap-3 no-print animate-fade-in shadow-sm">
+          <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-green-900 mb-1">Success</p>
+            <p className="text-sm text-green-800">{success}</p>
+          </div>
         </div>
       )}
 
@@ -1004,47 +1010,58 @@ Disposition: ${extractedData.disposition}`
         {/* Left Column - Input */}
         <div className="space-y-6 no-print">
           {/* Settings */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
-              <Settings className="h-5 w-5 text-gray-400" />
+          <div className="card hover:shadow-2xl transition-shadow duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Settings className="h-5 w-5 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Settings</h2>
+              </div>
             </div>
             
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={useAI}
-                    onChange={(e) => {
-                      setUseAI(e.target.checked);
-                      if (e.target.checked && !geminiApiKey && !openaiApiKey && !claudeApiKey) {
-                        setShowApiKeyInput(true);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-sm font-medium">Use Multi-AI Extraction</span>
-                  <Brain className="h-4 w-4 text-purple-600" />
+            <div className="space-y-4">
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                <label className="flex items-center justify-between cursor-pointer group">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={useAI}
+                      onChange={(e) => {
+                        setUseAI(e.target.checked);
+                        if (e.target.checked && !geminiApiKey && !openaiApiKey && !claudeApiKey) {
+                          setShowApiKeyInput(true);
+                        }
+                      }}
+                      className="w-5 h-5 rounded text-purple-600 focus:ring-2 focus:ring-purple-500"
+                    />
+                    <div>
+                      <span className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                        Use Multi-AI Extraction
+                        <Brain className="h-5 w-5 text-purple-600" />
+                      </span>
+                      <p className="text-xs text-gray-600 mt-0.5">Enhanced accuracy with AI models</p>
+                    </div>
+                  </div>
+                  {useAI && !geminiApiKey && !openaiApiKey && !claudeApiKey && (
+                    <button
+                      onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                      className="text-sm text-purple-600 hover:text-purple-700 font-medium hover:underline"
+                    >
+                      Add API Keys
+                    </button>
+                  )}
                 </label>
-                {useAI && !geminiApiKey && !openaiApiKey && !claudeApiKey && (
-                  <button
-                    onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Add API Keys
-                  </button>
-                )}
               </div>
               
               {showApiKeyInput && (
-                <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-2">
+                <div className="space-y-4 p-5 bg-gray-50 rounded-xl border-2 border-gray-200 animate-fade-in">
+                  <p className="text-sm text-gray-700 mb-3 font-medium">
                     Configure AI APIs for synergistic extraction:
                   </p>
                   
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Gemini API Key (Medical Extraction)
                     </label>
                     <input
@@ -1057,7 +1074,7 @@ Disposition: ${extractedData.disposition}`
                   </div>
                   
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       OpenAI API Key (Clinical Synthesis) - Optional
                     </label>
                     <input
@@ -1070,7 +1087,7 @@ Disposition: ${extractedData.disposition}`
                   </div>
                   
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Claude API Key (Structuring) - Optional
                     </label>
                     <input
@@ -1086,13 +1103,14 @@ Disposition: ${extractedData.disposition}`
                     onClick={handleApiKeySave}
                     className="btn-primary text-sm w-full mt-2"
                   >
+                    <Save className="h-4 w-4" />
                     Save API Keys
                   </button>
                 </div>
               )}
               
               <div>
-                <label className="block text-sm font-medium mb-1">Template</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Summary Template</label>
                 <select
                   value={selectedTemplate}
                   onChange={(e) => setSelectedTemplate(e.target.value)}
@@ -1107,16 +1125,23 @@ Disposition: ${extractedData.disposition}`
           </div>
 
           {/* Note Inputs - Unified Input Box */}
-          <div className="card">
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Clinical Notes</h2>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Info className="h-4 w-4" />
-                  <span>Paste all notes - system will auto-detect types</span>
+          <div className="card hover:shadow-2xl transition-shadow duration-300">
+            <div className="mb-6">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <ClipboardList className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Clinical Notes</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      <Info className="h-3 w-3 inline mr-1" />
+                      System auto-detects note types
+                    </p>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 leading-relaxed pl-12">
                 Paste admission notes, progress notes, consultant notes, procedure notes, and discharge notes.
                 The system will automatically detect and separate different note types.
               </p>
@@ -1124,11 +1149,14 @@ Disposition: ${extractedData.disposition}`
 
             {/* Detected Note Types Display */}
             {Object.entries(detectedNotes).some(([_, content]) => content.trim()) && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs font-medium text-blue-900 mb-2">Detected Note Types:</p>
+              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl animate-fade-in">
+                <p className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Detected Note Types:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(detectedNotes).filter(([_, content]) => content.trim()).map(([type, _]) => (
-                    <span key={type} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium capitalize">
+                    <span key={type} className="badge badge-blue capitalize shadow-sm">
                       {type}
                     </span>
                   ))}
@@ -1136,7 +1164,7 @@ Disposition: ${extractedData.disposition}`
               </div>
             )}
 
-            <div className="relative">
+            <div className="relative group">
               <textarea
                 value={unifiedNotes}
                 onChange={(e) => setUnifiedNotes(e.target.value)}
@@ -1152,12 +1180,12 @@ Patient doing well...
 ===================================
 DISCHARGE NOTE
 Patient ready for discharge...`}
-                className="input-field h-80 font-mono text-sm resize-y"
+                className="input-field font-mono text-sm resize-y min-h-[320px] h-[420px] leading-relaxed"
               />
               
-              <label className="absolute top-3 right-3 cursor-pointer">
-                <div className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Upload className="h-4 w-4 text-gray-600" />
+              <label className="absolute top-4 right-4 cursor-pointer z-10">
+                <div className="p-2.5 bg-white hover:bg-blue-50 rounded-lg transition-all shadow-sm border border-gray-200 hover:border-blue-300">
+                  <Upload className="h-5 w-5 text-gray-600 hover:text-blue-600 transition-colors" />
                 </div>
                 <input
                   ref={fileInputRef}
@@ -1169,16 +1197,24 @@ Patient ready for discharge...`}
               </label>
             </div>
 
-            <div className="mt-4 flex items-center gap-2 text-xs text-gray-600">
-              <Shield className="h-4 w-4" />
-              <span>Character count: {unifiedNotes.length}</span>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Shield className="h-4 w-4 text-gray-400" />
+                <span>Character count: <span className="font-semibold text-gray-800">{unifiedNotes.length.toLocaleString()}</span></span>
+              </div>
+              {unifiedNotes.length > 0 && (
+                <div className="text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  <span>Ready to extract</span>
+                </div>
+              )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-6">
               <button
                 onClick={handleExtractData}
                 disabled={loading || !unifiedNotes.trim()}
-                className="w-full btn-primary"
+                className="w-full btn-primary text-base py-4"
               >
                 {loading ? (
                   <>
@@ -1197,27 +1233,35 @@ Patient ready for discharge...`}
 
           {/* Extracted Data */}
           {extractedData && (
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Extracted Data</h3>
+            <div className="card hover:shadow-2xl transition-shadow duration-300 animate-fade-in">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Database className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Extracted Data</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">Review and edit extracted information</p>
+                  </div>
+                </div>
                 <Edit className="h-5 w-5 text-gray-400" />
               </div>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                 {Object.entries(extractedData).map(([key, value]) => {
                   const isArray = Array.isArray(value);
                   const displayValue = isArray ? value.join('\n') : value || '';
                   
                   return (
-                    <div key={key}>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div key={key} className="group">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                       </label>
                       {isArray ? (
                         <textarea
                           value={displayValue}
                           onChange={(e) => updateExtractedData(key, e.target.value.split('\n').filter(Boolean))}
-                          rows={Math.min(3, value.length || 1)}
+                          rows={Math.max(3, Math.min(5, value.length || 1))}
                           className="input-field text-sm font-mono"
                         />
                       ) : (
@@ -1235,7 +1279,7 @@ Patient ready for discharge...`}
 
               <button
                 onClick={generateSummary}
-                className="w-full btn-primary mt-4"
+                className="w-full btn-primary mt-6 text-base py-4"
               >
                 <FileText className="h-5 w-5" />
                 <span>Generate Summary</span>
@@ -1246,17 +1290,25 @@ Patient ready for discharge...`}
 
         {/* Right Column - Output */}
         <div className="space-y-6">
-          <div className="card">
-            <div className="flex items-center justify-between mb-4 no-print">
-              <h2 className="text-lg font-semibold text-gray-900">Generated Summary</h2>
+          <div className="card hover:shadow-2xl transition-shadow duration-300">
+            <div className="flex items-center justify-between mb-6 no-print">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Generated Summary</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Review, edit, and export your summary</p>
+                </div>
+              </div>
               {generatedSummary && (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsEditing(!isEditing)}
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-2.5 rounded-lg transition-all shadow-sm ${
                       isEditing 
-                        ? 'bg-blue-100 text-blue-600' 
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-blue-100 text-blue-600 shadow-md' 
+                        : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
                     }`}
                     title={isEditing ? 'View Mode' : 'Edit Mode'}
                   >
@@ -1264,21 +1316,21 @@ Patient ready for discharge...`}
                   </button>
                   <button
                     onClick={copySummary}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Copy"
+                    className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all border border-gray-200 shadow-sm"
+                    title="Copy to Clipboard"
                   >
                     {copied ? <CheckCircle className="h-5 w-5 text-green-600" /> : <Copy className="h-5 w-5" />}
                   </button>
                   <button
                     onClick={downloadSummary}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all border border-gray-200 shadow-sm"
                     title="Download"
                   >
                     <Download className="h-5 w-5" />
                   </button>
                   <button
                     onClick={printSummary}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all border border-gray-200 shadow-sm"
                     title="Print"
                   >
                     <Printer className="h-5 w-5" />
@@ -1288,14 +1340,14 @@ Patient ready for discharge...`}
             </div>
 
             {isEditing && generatedSummary && (
-              <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg no-print">
-                <div className="flex items-start gap-2">
-                  <Brain className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl no-print animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <Brain className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium">ML Learning Mode Active</p>
-                    <p className="text-xs mt-1">
+                    <p className="font-semibold text-base">ML Learning Mode Active</p>
+                    <p className="text-sm mt-1 leading-relaxed">
                       Your edits will be analyzed (without storing patient data) to improve future summaries.
-                      Total edits learned: {learningData.totalEdits}
+                      Total edits learned: <span className="font-semibold">{learningData.totalEdits}</span>
                     </p>
                   </div>
                 </div>
@@ -1305,18 +1357,19 @@ Patient ready for discharge...`}
             {generatedSummary ? (
               <div>
                 {isEditing ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <textarea
                       value={editableSummary}
                       onChange={(e) => setEditableSummary(e.target.value)}
-                      className="w-full h-[600px] p-4 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-5 border-2 border-gray-300 rounded-xl font-mono text-sm focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all leading-relaxed shadow-inner"
+                      style={{ height: '600px', minHeight: '400px' }}
                     />
-                    <div className="flex gap-2 no-print">
+                    <div className="flex gap-3 no-print">
                       <button
                         onClick={() => handleSummaryEdit(editableSummary)}
-                        className="btn-primary flex-1"
+                        className="btn-primary flex-1 text-base py-4"
                       >
-                        <Save className="h-4 w-4" />
+                        <Save className="h-5 w-5" />
                         <span>Save & Learn from Edits</span>
                       </button>
                       <button
@@ -1324,7 +1377,7 @@ Patient ready for discharge...`}
                           setEditableSummary(generatedSummary);
                           setIsEditing(false);
                         }}
-                        className="btn-secondary"
+                        className="btn-secondary px-8"
                       >
                         Cancel
                       </button>
@@ -1333,20 +1386,21 @@ Patient ready for discharge...`}
                 ) : (
                   <div 
                     ref={summaryRef}
-                    className="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-auto"
+                    className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 shadow-inner border border-gray-200 max-h-[600px] min-h-[400px] overflow-y-auto"
+                  
                   >
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
+                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 leading-relaxed">
                       {generatedSummary}
                     </pre>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-96 border-2 border-dashed border-gray-300 rounded-lg">
+              <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors" style={{ height: '500px' }}>
                 <div className="text-center text-gray-400">
-                  <FileText className="h-12 w-12 mx-auto mb-3" />
-                  <p>Generated summary will appear here</p>
-                  <p className="text-xs mt-2">Extract data and generate summary to begin</p>
+                  <FileText className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Generated summary will appear here</p>
+                  <p className="text-sm mt-2">Extract data and generate summary to begin</p>
                 </div>
               </div>
             )}
@@ -1354,23 +1408,29 @@ Patient ready for discharge...`}
 
           {/* ML Learning Dashboard */}
           {learningData.totalEdits > 0 && (
-            <div className="card bg-gradient-to-br from-purple-50 to-blue-50 no-print">
-              <div className="flex items-center gap-2 mb-3">
-                <Brain className="h-5 w-5 text-purple-600" />
-                <h3 className="text-sm font-semibold text-gray-900">ML Learning Statistics</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="p-2 bg-white rounded">
-                  <p className="text-gray-600 text-xs">Total Edits</p>
-                  <p className="font-semibold text-lg">{learningData.totalEdits}</p>
+            <div className="card bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-200 no-print hover:shadow-2xl transition-all duration-300 animate-fade-in">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Brain className="h-6 w-6 text-purple-600" />
                 </div>
-                <div className="p-2 bg-white rounded">
-                  <p className="text-gray-600 text-xs">Patterns Learned</p>
-                  <p className="font-semibold text-lg">{Object.keys(learningData.patterns).length}</p>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">ML Learning Statistics</h3>
+                  <p className="text-xs text-gray-600 mt-0.5">Your contributions to AI improvement</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="p-4 bg-white rounded-xl shadow-sm border border-purple-100">
+                  <p className="text-gray-600 text-xs font-medium mb-1">Total Edits</p>
+                  <p className="font-bold text-2xl text-purple-600">{learningData.totalEdits}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl shadow-sm border border-purple-100">
+                  <p className="text-gray-600 text-xs font-medium mb-1">Patterns Learned</p>
+                  <p className="font-bold text-2xl text-purple-600">{Object.keys(learningData.patterns).length}</p>
                 </div>
               </div>
               {learningData.lastUpdated && (
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-xs text-gray-600 mt-4 flex items-center gap-2">
+                  <Clock className="h-3 w-3" />
                   Last updated: {new Date(learningData.lastUpdated).toLocaleString()}
                 </p>
               )}
