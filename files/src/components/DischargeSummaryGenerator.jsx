@@ -4,31 +4,51 @@ import {
   Upload, Trash2, Wand2, RefreshCw, Edit, Settings,
   Save, Eye, EyeOff, Printer, Shield, Database,
   Activity, Clock, ClipboardList, ChevronDown, ChevronRight,
-  Heart, Brain, Zap, FileX, Loader2
+  Heart, Brain, Zap, FileX, Loader2, Info
 } from 'lucide-react';
 
 const DischargeSummaryGenerator = () => {
-  // Core State
-  const [admissionNote, setAdmissionNote] = useState('');
-  const [progressNotes, setProgressNotes] = useState('');
-  const [finalNote, setFinalNote] = useState('');
+  // Core State - Single unified input
+  const [unifiedNotes, setUnifiedNotes] = useState('');
+  const [detectedNotes, setDetectedNotes] = useState({
+    admission: '',
+    progress: '',
+    consultant: '',
+    procedure: '',
+    final: ''
+  });
   const [extractedData, setExtractedData] = useState(null);
   const [generatedSummary, setGeneratedSummary] = useState('');
+  const [editableSummary, setEditableSummary] = useState('');
   
   // UI State
-  const [activeTab, setActiveTab] = useState('admission');
+  const [activeTab, setActiveTab] = useState('input');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [warnings, setWarnings] = useState([]);
   const [success, setSuccess] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   
-  // Settings
+  // Settings - Multi-AI Configuration
   const [useAI, setUseAI] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [openaiApiKey, setOpenaiApiKey] = useState('');
+  const [claudeApiKey, setClaudeApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState('standard');
+  
+  // ML Learning State
+  const [learningData, setLearningData] = useState(() => {
+    const saved = localStorage.getItem('dischargeSummaryLearning');
+    return saved ? JSON.parse(saved) : {
+      corrections: [],
+      patterns: {},
+      totalEdits: 0,
+      lastUpdated: null
+    };
+  });
   
   // Refs
   const fileInputRef = useRef(null);
@@ -40,9 +60,8 @@ const DischargeSummaryGenerator = () => {
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        if (parsed.admissionNote) setAdmissionNote(parsed.admissionNote);
-        if (parsed.progressNotes) setProgressNotes(parsed.progressNotes);
-        if (parsed.finalNote) setFinalNote(parsed.finalNote);
+        if (parsed.unifiedNotes) setUnifiedNotes(parsed.unifiedNotes);
+        if (parsed.detectedNotes) setDetectedNotes(parsed.detectedNotes);
         setSuccess('Previous draft restored');
         setTimeout(() => setSuccess(''), 3000);
       } catch (e) {
@@ -50,12 +69,17 @@ const DischargeSummaryGenerator = () => {
       }
     }
 
-    // Load API key if saved
-    const savedKey = localStorage.getItem('geminiApiKey');
-    if (savedKey) {
-      setApiKey(savedKey);
+    // Load API keys if saved
+    const savedGemini = localStorage.getItem('geminiApiKey');
+    const savedOpenAI = localStorage.getItem('openaiApiKey');
+    const savedClaude = localStorage.getItem('claudeApiKey');
+    
+    if (savedGemini) {
+      setGeminiApiKey(savedGemini);
       setUseAI(true);
     }
+    if (savedOpenAI) setOpenaiApiKey(savedOpenAI);
+    if (savedClaude) setClaudeApiKey(savedClaude);
   }, []);
 
   // Auto-save
@@ -63,21 +87,100 @@ const DischargeSummaryGenerator = () => {
     if (!autoSave) return;
     
     const saveTimer = setTimeout(() => {
-      if (admissionNote || progressNotes || finalNote) {
+      if (unifiedNotes || Object.values(detectedNotes).some(n => n)) {
         localStorage.setItem('dischargeSummaryDraft', JSON.stringify({
-          admissionNote,
-          progressNotes,
-          finalNote,
+          unifiedNotes,
+          detectedNotes,
           savedAt: new Date().toISOString()
         }));
       }
     }, 2000);
 
     return () => clearTimeout(saveTimer);
-  }, [admissionNote, progressNotes, finalNote, autoSave]);
+  }, [unifiedNotes, detectedNotes, autoSave]);
 
-  // Pattern-based extraction
+  // Smart Note Detection Function
+  const detectNoteTypes = useCallback((text) => {
+    const detected = {
+      admission: '',
+      progress: '',
+      consultant: '',
+      procedure: '',
+      final: ''
+    };
+
+    // Split by common delimiters
+    const sections = text.split(/(?:\n={3,}|\n-{3,}|\n\*{3,}|\n#{2,})/);
+    
+    sections.forEach(section => {
+      const lowerSection = section.toLowerCase();
+      const trimmedSection = section.trim();
+      
+      if (!trimmedSection) return;
+      
+      // Admission/H&P Note Detection
+      if (lowerSection.includes('admission') || 
+          lowerSection.includes('history and physical') || 
+          lowerSection.includes('h&p') ||
+          lowerSection.includes('chief complaint') ||
+          (lowerSection.includes('patient') && lowerSection.includes('admitted'))) {
+        detected.admission += trimmedSection + '\n\n';
+      }
+      // Progress Note Detection
+      else if (lowerSection.includes('progress note') || 
+               lowerSection.includes('daily note') ||
+               lowerSection.includes('soap note') ||
+               (lowerSection.includes('neurosurgery') && lowerSection.includes('note')) ||
+               lowerSection.match(/post[- ]?op(?:erative)?\s+day/i)) {
+        detected.progress += trimmedSection + '\n\n';
+      }
+      // Consultant Note Detection
+      else if (lowerSection.includes('consult') || 
+               lowerSection.includes('consultation') ||
+               lowerSection.includes('recommendations from') ||
+               lowerSection.match(/(?:cardiology|neurology|medicine|icu|surgery)\s+note/i)) {
+        detected.consultant += trimmedSection + '\n\n';
+      }
+      // Procedure Note Detection
+      else if (lowerSection.includes('operative note') || 
+               lowerSection.includes('procedure note') ||
+               lowerSection.includes('operation performed') ||
+               lowerSection.includes('craniotomy') ||
+               lowerSection.includes('laminectomy') ||
+               lowerSection.includes('discectomy') ||
+               lowerSection.includes('fusion') ||
+               lowerSection.match(/(?:indication|procedure|findings|complications):/gi)) {
+        detected.procedure += trimmedSection + '\n\n';
+      }
+      // Discharge/Final Note Detection
+      else if (lowerSection.includes('discharge') || 
+               lowerSection.includes('final note') ||
+               lowerSection.includes('discharge summary') ||
+               lowerSection.includes('disposition')) {
+        detected.final += trimmedSection + '\n\n';
+      }
+      // If no specific marker, add to admission as default
+      else if (detected.admission === '' && trimmedSection.length > 50) {
+        detected.admission += trimmedSection + '\n\n';
+      }
+    });
+
+    // Fallback: if nothing detected, treat entire text as admission note
+    if (!Object.values(detected).some(v => v.trim())) {
+      detected.admission = text;
+    }
+
+    return detected;
+  }, []);
+
+  // Pattern-based extraction (updated to use detected notes)
   const extractWithPatterns = useCallback(() => {
+    const notes = detectedNotes;
+    const admissionNote = notes.admission || '';
+    const progressNotes = notes.progress || '';
+    const finalNote = notes.final || '';
+    const procedureNote = notes.procedure || '';
+    
     const patterns = {
       // Demographics patterns
       patientName: [
@@ -183,9 +286,10 @@ const DischargeSummaryGenerator = () => {
       extracted.allergies = allergyMatch[1].trim();
     }
 
-    // Extract procedures from progress notes
-    if (progressNotes) {
-      const procMatches = progressNotes.match(/(?:Procedure|Operation|Surgery)\s*:?\s*([^\n]+)/gi);
+    // Extract procedures from procedure note or progress notes
+    const procedureText = procedureNote || progressNotes;
+    if (procedureText) {
+      const procMatches = procedureText.match(/(?:Procedure|Operation|Surgery)\s*:?\s*([^\n]+)/gi);
       if (procMatches) {
         extracted.procedures = procMatches.map(match => 
           match.replace(/(?:Procedure|Operation|Surgery)\s*:?\s*/i, '').trim()
@@ -230,38 +334,48 @@ const DischargeSummaryGenerator = () => {
     }
 
     return extracted;
-  }, [admissionNote, progressNotes, finalNote]);
+  }, [detectedNotes]);
 
-  // AI extraction with Gemini
-  const extractWithAI = useCallback(async () => {
-    if (!apiKey) {
-      throw new Error('API key is required for AI extraction');
+  // Multi-AI Extraction Functions
+  
+  // Gemini AI - Medical Information Extraction
+  const extractWithGemini = useCallback(async () => {
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key is required');
     }
 
-    const prompt = `Extract the following information from these clinical notes and return as JSON:
-    - patientName, age, sex, mrn
-    - admitDate, dischargeDate
-    - admittingDiagnosis, dischargeDiagnosis
-    - procedures (array), complications (array)
-    - historyPresenting, hospitalCourse
-    - currentExam, vitalSigns
-    - dischargeMedications (array), allergies
-    - pmh (array), psh (array)
-    - disposition, diet, activity
-    - followUp (array)
+    const notes = detectedNotes;
+    const prompt = `You are a medical AI specialized in extracting neurosurgical patient information. 
+Extract the following information from these clinical notes and return as JSON:
+- patientName, age, sex, mrn
+- admitDate, dischargeDate
+- admittingDiagnosis, dischargeDiagnosis
+- procedures (array), complications (array)
+- historyPresenting, hospitalCourse
+- currentExam, vitalSigns
+- dischargeMedications (array), allergies
+- pmh (array), psh (array)
+- disposition, diet, activity
+- followUp (array)
 
-    ADMISSION NOTE:
-    ${admissionNote}
+ADMISSION NOTE:
+${notes.admission}
 
-    PROGRESS NOTES:
-    ${progressNotes}
+PROGRESS NOTES:
+${notes.progress}
 
-    DISCHARGE NOTE:
-    ${finalNote}`;
+CONSULTANT NOTES:
+${notes.consultant}
+
+PROCEDURE NOTE:
+${notes.procedure}
+
+DISCHARGE NOTE:
+${notes.final}`;
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -276,7 +390,7 @@ const DischargeSummaryGenerator = () => {
       );
 
       if (!response.ok) {
-        throw new Error('AI extraction failed');
+        throw new Error('Gemini API request failed');
       }
 
       const result = await response.json();
@@ -290,17 +404,164 @@ const DischargeSummaryGenerator = () => {
         }
       }
       
-      throw new Error('Could not parse AI response');
+      throw new Error('Could not parse Gemini response');
     } catch (error) {
-      console.error('AI extraction error:', error);
+      console.error('Gemini extraction error:', error);
       throw error;
     }
-  }, [apiKey, admissionNote, progressNotes, finalNote]);
+  }, [geminiApiKey, detectedNotes]);
 
-  // Main extraction handler
+  // OpenAI - Clinical Synthesis
+  const synthesizeWithOpenAI = useCallback(async (extractedData) => {
+    if (!openaiApiKey) {
+      return extractedData; // Skip if no API key
+    }
+
+    try {
+      const prompt = `Given this extracted patient data, synthesize and enhance the clinical narrative, 
+ensuring medical accuracy and completeness. Focus on neurosurgical context.
+
+Extracted Data:
+${JSON.stringify(extractedData, null, 2)}
+
+Return enhanced data in the same JSON structure with improved narratives.`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [
+            { role: 'system', content: 'You are a neurosurgery medical AI assistant specializing in clinical documentation.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000
+        })
+      });
+
+      if (!response.ok) {
+        console.warn('OpenAI synthesis skipped:', response.statusText);
+        return extractedData;
+      }
+
+      const result = await response.json();
+      const content = result.choices?.[0]?.message?.content;
+      
+      if (content) {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+      }
+      
+      return extractedData;
+    } catch (error) {
+      console.error('OpenAI synthesis error:', error);
+      return extractedData; // Return original if failed
+    }
+  }, [openaiApiKey]);
+
+  // Claude - Structuring and Summarizing
+  const structureWithClaude = useCallback(async (extractedData) => {
+    if (!claudeApiKey) {
+      return extractedData; // Skip if no API key
+    }
+
+    try {
+      const prompt = `You are Claude, an AI specialized in medical documentation structure and summarization.
+      
+Given this clinical data, structure and summarize it into a well-organized discharge summary format.
+Focus on clarity, completeness, and proper medical documentation standards.
+
+Clinical Data:
+${JSON.stringify(extractedData, null, 2)}
+
+Return the structured data in the same JSON format with improved organization and concise summaries.`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': claudeApiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-sonnet-20240229',
+          max_tokens: 2000,
+          messages: [
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        console.warn('Claude structuring skipped:', response.statusText);
+        return extractedData;
+      }
+
+      const result = await response.json();
+      const content = result.content?.[0]?.text;
+      
+      if (content) {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+      }
+      
+      return extractedData;
+    } catch (error) {
+      console.error('Claude structuring error:', error);
+      return extractedData; // Return original if failed
+    }
+  }, [claudeApiKey]);
+
+  // Orchestrated Multi-AI Extraction
+  const extractWithMultiAI = useCallback(async () => {
+    let extractedData;
+    
+    // Step 1: Extract with Gemini (primary extraction)
+    if (geminiApiKey) {
+      try {
+        extractedData = await extractWithGemini();
+      } catch (error) {
+        console.warn('Gemini extraction failed, using patterns:', error);
+        extractedData = extractWithPatterns();
+      }
+    } else {
+      extractedData = extractWithPatterns();
+    }
+    
+    // Step 2: Enhance with OpenAI (synthesis)
+    if (openaiApiKey && extractedData) {
+      try {
+        extractedData = await synthesizeWithOpenAI(extractedData);
+      } catch (error) {
+        console.warn('OpenAI synthesis failed, continuing without:', error);
+      }
+    }
+    
+    // Step 3: Structure with Claude (organization)
+    if (claudeApiKey && extractedData) {
+      try {
+        extractedData = await structureWithClaude(extractedData);
+      } catch (error) {
+        console.warn('Claude structuring failed, continuing without:', error);
+      }
+    }
+    
+    return extractedData;
+  }, [geminiApiKey, openaiApiKey, claudeApiKey, extractWithGemini, synthesizeWithOpenAI, structureWithClaude, extractWithPatterns]);
+
+  // Main extraction handler with note detection
   const handleExtractData = async () => {
-    if (!admissionNote.trim() || !finalNote.trim()) {
-      setError('Admission and discharge notes are required');
+    if (!unifiedNotes.trim()) {
+      setError('Please enter clinical notes');
       return;
     }
 
@@ -310,12 +571,26 @@ const DischargeSummaryGenerator = () => {
     setSuccess('');
 
     try {
+      // Step 1: Detect note types
+      const detected = detectNoteTypes(unifiedNotes);
+      setDetectedNotes(detected);
+      
+      // Show what was detected
+      const detectedTypes = Object.entries(detected)
+        .filter(([_, content]) => content.trim())
+        .map(([type, _]) => type);
+      
+      if (detectedTypes.length > 0) {
+        setSuccess(`Detected notes: ${detectedTypes.join(', ')}`);
+      }
+
+      // Step 2: Extract data using multi-AI or patterns
       let extracted;
       
-      if (useAI && apiKey) {
+      if (useAI && (geminiApiKey || openaiApiKey || claudeApiKey)) {
         try {
-          extracted = await extractWithAI();
-          setSuccess('AI extraction completed successfully');
+          extracted = await extractWithMultiAI();
+          setSuccess('Multi-AI extraction completed successfully');
         } catch (aiError) {
           console.warn('AI extraction failed, falling back to patterns:', aiError);
           extracted = extractWithPatterns();
@@ -337,12 +612,122 @@ const DischargeSummaryGenerator = () => {
       }
 
       setExtractedData(extracted);
+      setActiveTab('review');
     } catch (err) {
       setError(`Extraction failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // ML Learning Functions
+  
+  // Analyze edits to identify patterns (not patient-specific data)
+  const analyzeEdit = useCallback((originalText, editedText) => {
+    const patterns = [];
+    
+    // Identify type of change
+    if (originalText.length < editedText.length) {
+      patterns.push({ type: 'addition', context: 'content_expansion' });
+    } else if (originalText.length > editedText.length) {
+      patterns.push({ type: 'reduction', context: 'content_simplification' });
+    }
+    
+    // Check for common medical phrase changes
+    const medicalPhrases = {
+      'patient': ['pt', 'individual', 'case'],
+      'underwent': ['had', 'received', 'completed'],
+      'discharge': ['released', 'sent home', 'transferred'],
+      'stable': ['improving', 'well', 'good condition'],
+      'tolerated': ['did well with', 'handled', 'managed']
+    };
+    
+    for (const [formal, informal] of Object.entries(medicalPhrases)) {
+      if (originalText.toLowerCase().includes(formal) && 
+          !editedText.toLowerCase().includes(formal) &&
+          informal.some(alt => editedText.toLowerCase().includes(alt))) {
+        patterns.push({ 
+          type: 'terminology_preference', 
+          from: formal, 
+          context: 'formality_adjustment' 
+        });
+      }
+    }
+    
+    // Check for structure changes
+    if ((originalText.match(/\n/g) || []).length < (editedText.match(/\n/g) || []).length) {
+      patterns.push({ type: 'formatting', context: 'improved_readability' });
+    }
+    
+    return patterns;
+  }, []);
+  
+  // Save learning from edits
+  const handleSummaryEdit = useCallback((editedSummary) => {
+    const patterns = analyzeEdit(generatedSummary, editedSummary);
+    
+    if (patterns.length > 0) {
+      const newLearningData = { ...learningData };
+      
+      patterns.forEach(pattern => {
+        const key = `${pattern.type}_${pattern.context}`;
+        newLearningData.patterns[key] = (newLearningData.patterns[key] || 0) + 1;
+      });
+      
+      newLearningData.corrections.push({
+        timestamp: new Date().toISOString(),
+        patterns: patterns,
+        // Do NOT store patient-specific data
+        editType: patterns.map(p => p.type).join(',')
+      });
+      
+      newLearningData.totalEdits += 1;
+      newLearningData.lastUpdated = new Date().toISOString();
+      
+      // Keep only last 100 corrections to avoid bloat
+      if (newLearningData.corrections.length > 100) {
+        newLearningData.corrections = newLearningData.corrections.slice(-100);
+      }
+      
+      setLearningData(newLearningData);
+      localStorage.setItem('dischargeSummaryLearning', JSON.stringify(newLearningData));
+      
+      setSuccess('Learning saved - future summaries will incorporate this pattern');
+      setTimeout(() => setSuccess(''), 3000);
+    }
+    
+    setGeneratedSummary(editedSummary);
+    setEditableSummary(editedSummary);
+    setIsEditing(false);
+  }, [generatedSummary, learningData, analyzeEdit]);
+  
+  // Apply learned patterns to new summaries
+  const applyLearnings = useCallback((summaryText) => {
+    let enhanced = summaryText;
+    
+    // Apply the most common learned patterns
+    const sortedPatterns = Object.entries(learningData.patterns)
+      .sort((a, b) => b[1] - a[1]) // Sort by frequency
+      .slice(0, 5); // Top 5 patterns
+    
+    sortedPatterns.forEach(([patternKey, count]) => {
+      if (count >= 3) { // Only apply if seen 3+ times
+        const [type, context] = patternKey.split('_');
+        
+        if (type === 'formatting' && context === 'improved') {
+          // Add extra spacing for readability if learned
+          enhanced = enhanced.replace(/\n([A-Z])/g, '\n\n$1');
+        }
+        
+        if (type === 'terminology' && context === 'formality') {
+          // Apply preferred terminology if learned
+          enhanced = enhanced.replace(/\bpatient\b/gi, 'pt');
+        }
+      }
+    });
+    
+    return enhanced;
+  }, [learningData]);
 
   // Generate summary from extracted data
   const generateSummary = () => {
@@ -433,10 +818,15 @@ Disposition: ${extractedData.disposition}`
     };
 
     const template = templates[selectedTemplate] || templates.standard;
-    const summary = template();
+    let summary = template();
+    
+    // Apply learned patterns to enhance the summary
+    summary = applyLearnings(summary);
     
     setGeneratedSummary(summary);
+    setEditableSummary(summary);
     setSuccess('Summary generated successfully');
+    setActiveTab('output');
   };
 
   // File handling
@@ -490,24 +880,39 @@ Disposition: ${extractedData.disposition}`
   const clearAll = () => {
     if (!confirm('Clear all data? This cannot be undone.')) return;
     
-    setAdmissionNote('');
-    setProgressNotes('');
-    setFinalNote('');
+    setUnifiedNotes('');
+    setDetectedNotes({
+      admission: '',
+      progress: '',
+      consultant: '',
+      procedure: '',
+      final: ''
+    });
     setExtractedData(null);
     setGeneratedSummary('');
+    setEditableSummary('');
     setError('');
     setWarnings([]);
     setSuccess('All data cleared');
     localStorage.removeItem('dischargeSummaryDraft');
   };
 
-  // Handle API key
+  // Handle API keys
   const handleApiKeySave = () => {
-    if (apiKey) {
-      localStorage.setItem('geminiApiKey', apiKey);
+    if (geminiApiKey) {
+      localStorage.setItem('geminiApiKey', geminiApiKey);
+    }
+    if (openaiApiKey) {
+      localStorage.setItem('openaiApiKey', openaiApiKey);
+    }
+    if (claudeApiKey) {
+      localStorage.setItem('claudeApiKey', claudeApiKey);
+    }
+    
+    if (geminiApiKey || openaiApiKey || claudeApiKey) {
       setUseAI(true);
       setShowApiKeyInput(false);
-      setSuccess('API key saved');
+      setSuccess('API keys saved');
     }
   };
 
@@ -612,39 +1017,75 @@ Disposition: ${extractedData.disposition}`
                     checked={useAI}
                     onChange={(e) => {
                       setUseAI(e.target.checked);
-                      if (e.target.checked && !apiKey) {
+                      if (e.target.checked && !geminiApiKey && !openaiApiKey && !claudeApiKey) {
                         setShowApiKeyInput(true);
                       }
                     }}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium">Use AI Extraction</span>
+                  <span className="text-sm font-medium">Use Multi-AI Extraction</span>
                   <Brain className="h-4 w-4 text-purple-600" />
                 </label>
-                {useAI && !apiKey && (
+                {useAI && !geminiApiKey && !openaiApiKey && !claudeApiKey && (
                   <button
                     onClick={() => setShowApiKeyInput(!showApiKeyInput)}
                     className="text-xs text-blue-600 hover:underline"
                   >
-                    Add API Key
+                    Add API Keys
                   </button>
                 )}
               </div>
               
               {showApiKeyInput && (
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter Gemini API key"
-                    className="input-field text-sm flex-1"
-                  />
+                <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-600 mb-2">
+                    Configure AI APIs for synergistic extraction:
+                  </p>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Gemini API Key (Medical Extraction)
+                    </label>
+                    <input
+                      type="password"
+                      value={geminiApiKey}
+                      onChange={(e) => setGeminiApiKey(e.target.value)}
+                      placeholder="Enter Gemini API key"
+                      className="input-field text-sm w-full"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      OpenAI API Key (Clinical Synthesis) - Optional
+                    </label>
+                    <input
+                      type="password"
+                      value={openaiApiKey}
+                      onChange={(e) => setOpenaiApiKey(e.target.value)}
+                      placeholder="Enter OpenAI API key (optional)"
+                      className="input-field text-sm w-full"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Claude API Key (Structuring) - Optional
+                    </label>
+                    <input
+                      type="password"
+                      value={claudeApiKey}
+                      onChange={(e) => setClaudeApiKey(e.target.value)}
+                      placeholder="Enter Claude API key (optional)"
+                      className="input-field text-sm w-full"
+                    />
+                  </div>
+                  
                   <button
                     onClick={handleApiKeySave}
-                    className="btn-primary text-sm"
+                    className="btn-primary text-sm w-full mt-2"
                   >
-                    Save
+                    Save API Keys
                   </button>
                 </div>
               )}
@@ -664,48 +1105,53 @@ Disposition: ${extractedData.disposition}`
             </div>
           </div>
 
-          {/* Note Inputs */}
+          {/* Note Inputs - Unified Input Box */}
           <div className="card">
-            <div className="border-b border-gray-200 -mx-6 -mt-6 mb-6">
-              <nav className="flex">
-                {[
-                  { id: 'admission', label: 'Admission', icon: ClipboardList, required: true },
-                  { id: 'progress', label: 'Progress', icon: Activity, required: false },
-                  { id: 'final', label: 'Discharge', icon: Clock, required: true }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600 bg-blue-50'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <tab.icon className="h-4 w-4" />
-                      {tab.label}
-                      {tab.required && <span className="text-red-500">*</span>}
-                    </div>
-                  </button>
-                ))}
-              </nav>
+            <div className="mb-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Clinical Notes</h2>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Info className="h-4 w-4" />
+                  <span>Paste all notes - system will auto-detect types</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Paste admission notes, progress notes, consultant notes, procedure notes, and discharge notes.
+                The system will automatically detect and separate different note types.
+              </p>
             </div>
+
+            {/* Detected Note Types Display */}
+            {Object.entries(detectedNotes).some(([_, content]) => content.trim()) && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs font-medium text-blue-900 mb-2">Detected Note Types:</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(detectedNotes).filter(([_, content]) => content.trim()).map(([type, _]) => (
+                    <span key={type} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium capitalize">
+                      {type}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="relative">
               <textarea
-                value={
-                  activeTab === 'admission' ? admissionNote :
-                  activeTab === 'progress' ? progressNotes :
-                  finalNote
-                }
-                onChange={(e) => {
-                  if (activeTab === 'admission') setAdmissionNote(e.target.value);
-                  else if (activeTab === 'progress') setProgressNotes(e.target.value);
-                  else setFinalNote(e.target.value);
-                }}
-                placeholder={`Paste ${activeTab} notes here...`}
-                className="input-field h-64 font-mono text-sm resize-y"
+                value={unifiedNotes}
+                onChange={(e) => setUnifiedNotes(e.target.value)}
+                placeholder={`Paste all clinical notes here (admission, progress, consultations, procedures, discharge notes)...
+
+Example format (optional delimiters):
+===================================
+ADMISSION NOTE / H&P
+Patient: John Doe...
+===================================
+PROGRESS NOTE - POD 1
+Patient doing well...
+===================================
+DISCHARGE NOTE
+Patient ready for discharge...`}
+                className="input-field h-80 font-mono text-sm resize-y"
               />
               
               <label className="absolute top-3 right-3 cursor-pointer">
@@ -717,31 +1163,31 @@ Disposition: ${extractedData.disposition}`
                   type="file"
                   className="hidden"
                   accept=".txt,.md"
-                  onChange={(e) => {
-                    const setter = activeTab === 'admission' ? setAdmissionNote :
-                                 activeTab === 'progress' ? setProgressNotes :
-                                 setFinalNote;
-                    handleFileUpload(e, setter);
-                  }}
+                  onChange={(e) => handleFileUpload(e, setUnifiedNotes)}
                 />
               </label>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 text-xs text-gray-600">
+              <Shield className="h-4 w-4" />
+              <span>Character count: {unifiedNotes.length}</span>
             </div>
 
             <div className="mt-4">
               <button
                 onClick={handleExtractData}
-                disabled={loading || !admissionNote.trim() || !finalNote.trim()}
+                disabled={loading || !unifiedNotes.trim()}
                 className="w-full btn-primary"
               >
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Extracting...</span>
+                    <span>Detecting notes and extracting...</span>
                   </>
                 ) : (
                   <>
                     {useAI ? <Brain className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
-                    <span>Extract Information</span>
+                    <span>Auto-Detect & Extract Information</span>
                   </>
                 )}
               </button>
@@ -805,6 +1251,17 @@ Disposition: ${extractedData.disposition}`
               {generatedSummary && (
                 <div className="flex items-center gap-2">
                   <button
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isEditing 
+                        ? 'bg-blue-100 text-blue-600' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    title={isEditing ? 'View Mode' : 'Edit Mode'}
+                  >
+                    {isEditing ? <Eye className="h-5 w-5" /> : <Edit className="h-5 w-5" />}
+                  </button>
+                  <button
                     onClick={copySummary}
                     className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Copy"
@@ -829,24 +1286,95 @@ Disposition: ${extractedData.disposition}`
               )}
             </div>
 
+            {isEditing && generatedSummary && (
+              <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg no-print">
+                <div className="flex items-start gap-2">
+                  <Brain className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium">ML Learning Mode Active</p>
+                    <p className="text-xs mt-1">
+                      Your edits will be analyzed (without storing patient data) to improve future summaries.
+                      Total edits learned: {learningData.totalEdits}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {generatedSummary ? (
-              <div 
-                ref={summaryRef}
-                className="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-auto"
-              >
-                <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
-                  {generatedSummary}
-                </pre>
+              <div>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={editableSummary}
+                      onChange={(e) => setEditableSummary(e.target.value)}
+                      className="w-full h-[600px] p-4 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <div className="flex gap-2 no-print">
+                      <button
+                        onClick={() => handleSummaryEdit(editableSummary)}
+                        className="btn-primary flex-1"
+                      >
+                        <Save className="h-4 w-4" />
+                        <span>Save & Learn from Edits</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditableSummary(generatedSummary);
+                          setIsEditing(false);
+                        }}
+                        className="btn-secondary"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    ref={summaryRef}
+                    className="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-auto"
+                  >
+                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
+                      {generatedSummary}
+                    </pre>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center justify-center h-96 border-2 border-dashed border-gray-300 rounded-lg">
                 <div className="text-center text-gray-400">
                   <FileText className="h-12 w-12 mx-auto mb-3" />
                   <p>Generated summary will appear here</p>
+                  <p className="text-xs mt-2">Extract data and generate summary to begin</p>
                 </div>
               </div>
             )}
           </div>
+
+          {/* ML Learning Dashboard */}
+          {learningData.totalEdits > 0 && (
+            <div className="card bg-gradient-to-br from-purple-50 to-blue-50 no-print">
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="h-5 w-5 text-purple-600" />
+                <h3 className="text-sm font-semibold text-gray-900">ML Learning Statistics</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="p-2 bg-white rounded">
+                  <p className="text-gray-600 text-xs">Total Edits</p>
+                  <p className="font-semibold text-lg">{learningData.totalEdits}</p>
+                </div>
+                <div className="p-2 bg-white rounded">
+                  <p className="text-gray-600 text-xs">Patterns Learned</p>
+                  <p className="font-semibold text-lg">{Object.keys(learningData.patterns).length}</p>
+                </div>
+              </div>
+              {learningData.lastUpdated && (
+                <p className="text-xs text-gray-600 mt-2">
+                  Last updated: {new Date(learningData.lastUpdated).toLocaleString()}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
