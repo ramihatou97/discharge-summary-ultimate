@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/discharge-summary-ultimate/static/css/main.8407fdd3.css",
+    "main.js": "/discharge-summary-ultimate/static/js/main.548606f0.js",
+    "index.html": "/discharge-summary-ultimate/index.html",
+    "main.8407fdd3.css.map": "/discharge-summary-ultimate/static/css/main.8407fdd3.css.map",
+    "main.548606f0.js.map": "/discharge-summary-ultimate/static/js/main.548606f0.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8407fdd3.css",
+    "static/js/main.548606f0.js"
+  ]
+}
